@@ -288,6 +288,23 @@ function createGA4Properties() {
       const dataStreamResponse = createDataStream(propertyId, dataStreamPayload);
       Logger.log('Data Stream Created: ' + JSON.stringify(dataStreamResponse));
 
+    // Only apply Enhanced Measurement for WEB streams
+    if (dataStreamResponse && dataStreamResponse.type === "WEB_DATA_STREAM") {
+    const fullName = dataStreamResponse.name || "";  // e.g. "properties/123/dataStreams/456"
+    const parts = fullName.split("/");
+    const dsId = parts[parts.length - 1];
+
+    // Build settings from the CreateProperty sheet row (columns I–P)
+    const emSettings = buildEnhancedMeasurementFromRow_(row, columnMap);
+
+    // Patch Enhanced Measurement settings
+    patchEnhancedMeasurement_(propertyId, dsId, emSettings);
+    } else {
+    Logger.log("Enhanced Measurement skipped: not a WEB_DATA_STREAM or missing response.");
+    }
+
+
+
       // Seed standard dimensions/metrics
       createStandardCustomDimensions(propertyId, dimensionSheet);
       createStandardCustomMetrics(propertyId, metricSheet);
