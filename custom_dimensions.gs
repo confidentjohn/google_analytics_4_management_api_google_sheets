@@ -155,8 +155,8 @@ function listCustomDimensions() {
 
   Logger.log(`Completed listing for ${propertiesToProcess.length} properties → ${sheetName}`);
   // completion email
-  const userEmail = getUserEmail_();
-  sendCompletionEmail(userEmail, "Custom Dimensions (List)", propertiesToProcess.length, sheetName);
+  //const userEmail = getUserEmail_();
+  //sendCompletionEmail(userEmail, "Custom Dimensions (List)", propertiesToProcess.length, sheetName);
   try { SpreadsheetApp.getUi().alert(`Completed! Wrote results to sheet: ${sheetName}`); } catch (_) {}
 }
 
