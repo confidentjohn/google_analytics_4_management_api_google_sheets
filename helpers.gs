@@ -407,3 +407,108 @@ function setupTemplateSheetsAndValidation() {
     try { ss.toast("Validation updated (README build failed)"); } catch(_) {}
   }
 }
+
+
+
+
+function toBool_(v) {
+  const s = String(v || "").trim().toLowerCase();
+  if (!s) return undefined;
+  if (["enabled","enable","true","t","yes","y","1"].includes(s)) return true;
+  if (["disabled","disable","false","f","no","n","0"].includes(s)) return false;
+  return undefined;
+}
+
+
+function buildEnhancedMeasurementFromRow_(row, columnMap) {
+  // Read and normalize. Only include keys when value is explicitly set.
+  const map = {
+    streamEnabled:         toBool_(row[columnMap["streamenabled"]]),
+    scrollsEnabled:        toBool_(row[columnMap["scrollsenabled"]]),
+    outboundClicksEnabled: toBool_(row[columnMap["outboundclicksenabled"]]),
+    siteSearchEnabled:     toBool_(row[columnMap["sitesearchenabled"]]),
+    videoEngagementEnabled:toBool_(row[columnMap["videoengagementenabled"]]),
+    fileDownloadsEnabled:  toBool_(row[columnMap["filedownloadsenabled"]]),
+    pageChangesEnabled:    toBool_(row[columnMap["pagechangesenabled"]]),
+    formInteractionsEnabled:toBool_(row[columnMap["forminteractionsenabled"]])
+  };
+
+  // Strip undefineds
+  const payload = {};
+  Object.keys(map).forEach(k => {
+    if (typeof map[k] === "boolean") payload[k] = map[k];
+  });
+  return payload; // may be {}
+}
+
+
+function patchEnhancedMeasurement_(propertyId, dataStreamId, settingsObj) {
+  // Nothing to update?
+  if (!settingsObj || Object.keys(settingsObj).length === 0) {
+    Logger.log("Enhanced Measurement: nothing to update (no fields set).");
+    return null;
+  }
+
+  const base = `https://analyticsadmin.googleapis.com/v1alpha/properties/${encodeURIComponent(propertyId)}/dataStreams/${encodeURIComponent(dataStreamId)}/enhancedMeasurementSettings`;
+
+  // Build masks
+  const camelMask = Object.keys(settingsObj).join(",");
+  const snakeMask = Object.keys(settingsObj)
+    .map(k => k.replace(/[A-Z]/g, m => "_" + m.toLowerCase()))
+    .join(",");
+
+  // Try camelCase first
+  const bodyCamel = JSON.stringify(settingsObj);
+  const urlCamel  = `${base}?updateMask=${encodeURIComponent(camelMask)}`;
+
+  const optionsBase = {
+    method: "patch",
+    headers: {
+      Authorization: `Bearer ${ScriptApp.getOAuthToken()}`,
+      Accept: "application/json",
+      "Content-Type": "application/json"
+    },
+    muteHttpExceptions: true
+  };
+
+  let res = UrlFetchApp.fetch(urlCamel, { ...optionsBase, payload: bodyCamel });
+  let code = res.getResponseCode();
+  if (code === 200) {
+    Logger.log("Enhanced Measurement updated (camelCase mask).");
+    return JSON.parse(res.getContentText());
+  }
+
+  // Retry using snake_case body + mask (some Admin v1alpha resources prefer snake_case)
+  const bodySnakeObj = {};
+  Object.keys(settingsObj).forEach(k => {
+    const snake = k.replace(/[A-Z]/g, m => "_" + m.toLowerCase());
+    bodySnakeObj[snake] = settingsObj[k];
+  });
+  const bodySnake = JSON.stringify(bodySnakeObj);
+  const urlSnake  = `${base}?updateMask=${encodeURIComponent(snakeMask)}`;
+
+  res = UrlFetchApp.fetch(urlSnake, { ...optionsBase, payload: bodySnake });
+  code = res.getResponseCode();
+  if (code === 200) {
+    Logger.log("Enhanced Measurement updated (snake_case mask).");
+    return JSON.parse(res.getContentText());
+  }
+
+  Logger.log(`Enhanced Measurement PATCH failed.
+  camelCase -> ${code} :: ${res.getContentText()}
+  snake_case -> ${UrlFetchApp.fetch(urlSnake, { ...optionsBase, payload: bodySnake }).getContentText()}`);
+  return null;
+}
+
+
+function getEnhancedMeasurement_(propertyId, dataStreamId) {
+  const url = `https://analyticsadmin.googleapis.com/v1alpha/properties/${encodeURIComponent(propertyId)}/dataStreams/${encodeURIComponent(dataStreamId)}/enhancedMeasurementSettings`;
+  const res = UrlFetchApp.fetch(url, {
+    method: "get",
+    headers: { Authorization: `Bearer ${ScriptApp.getOAuthToken()}`, Accept: "application/json" },
+    muteHttpExceptions: true
+  });
+  Logger.log(`GET EMS ${propertyId}/${dataStreamId}: ${res.getResponseCode()} :: ${res.getContentText()}`);
+  if (res.getResponseCode() === 200) return JSON.parse(res.getContentText());
+  return null;
+}
