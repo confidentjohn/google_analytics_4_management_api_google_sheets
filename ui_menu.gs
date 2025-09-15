@@ -38,12 +38,19 @@ function onOpen() {
     ui.createMenu('Channel Groups')
       .addItem('List Channel Groups', 'listChannelGroups')
       .addItem('Create Channel Groups', 'createNewChannelGroups')
-      .addItem('Update Channel Groups', 'updateChannelGroupsFromSheet')
+      .addItem('Update Channel Groups', 'updateChannelGroups')
   );
+
+// --- All Dimensions, metrics, channels, calculations Groups ---
+  menu.addSubMenu(
+    ui.createMenu('All Dimensions, Metrics, Channels & Calculated Metrics')
+      .addItem('Pull All', 'listAllAdminResourcesOnce')
+  );
+
 
   // --- Properties ---
   menu.addSubMenu(
-    ui.createMenu('admin - Property Creation (YOU CAN BREAK THINGS WITH THIS)')
+    ui.createMenu('admin - Property Creation (YOU CAN BREAK THINGS WITHIN THIS MENU)')
       .addItem('Create All Helper Sheets', 'setupTemplateSheetsAndValidation')
       .addSeparator()
       .addItem('Create GA4 Properties', 'createGA4Properties')
