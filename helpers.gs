@@ -283,6 +283,7 @@ function setupTemplateSheetsAndValidation() {
   const deleteCalculatedMetrics    = ensure("deleteCalculatedMetrics",    ["Property ID", "Calculated Metric ID"]);
   const newChannelGroups = ensure("newChannelGroups",["Property ID","displayName","description","groupingRule"]);
   const updateChannelGroups = ensure("updateChannelGroups",["Property ID","Channel Group ID", "displayName","description","groupingRule"]);
+  const newMPSecrets = ensure("newMPSecrets", ["Property ID", "Data Stream ID", "Display Name", "Secret Name", "Secret Value", "Status"]);
 
   // ---------- Validation sheet ----------
   const VSN = "propertycreation_validation_sheet";
