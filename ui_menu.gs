@@ -7,6 +7,8 @@ function onOpen() {
     ui.createMenu('Account & Properties')
       .addItem('List Accounts Summary', 'listAccounts')
       .addItem('List All GA4 Properties', 'listAllGA4PropertyDetails')
+      .addItem('List Data Streams', 'listDataStreams')
+
   );
 
   // --- Custom Dimensions ---
@@ -54,6 +56,8 @@ function onOpen() {
       .addItem('Create All Helper Sheets', 'setupTemplateSheetsAndValidation')
       .addSeparator()
       .addItem('Create GA4 Properties', 'createGA4Properties')
+      .addSeparator()
+      .addItem('Create MP Secrets', 'createMeasurementProtocolSecrets')
   );
 
   // Add to UI
